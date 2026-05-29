@@ -1,13 +1,18 @@
 package com.beni.syncapp.controller;
 
-import com.beni.syncapp.dto.LastTransactionResponse;
-import com.beni.syncapp.dto.TopStoreResponse;
+import com.beni.syncapp.dto.*;
 import com.beni.syncapp.repository.ActivityRepository;
+import com.beni.syncapp.service.DashboardService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -16,6 +21,7 @@ import java.util.List;
 public class DashboardController {
 
     private final ActivityRepository activityRepository;
+    private final DashboardService service;
 
     // =========================
     // TOP TRANSAKSI
@@ -64,5 +70,123 @@ public class DashboardController {
                         (BigDecimal) obj[2]
                 ))
                 .toList();
+    }
+
+    @GetMapping("/metrics")
+    public DashboardMetricResponse getMetrics(
+
+            @RequestParam String startDate,
+
+            @RequestParam String endDate
+    ) {
+
+        LocalDateTime start =
+                LocalDate.parse(startDate)
+                        .atStartOfDay();
+
+        LocalDateTime end =
+                LocalDate.parse(endDate)
+                        .atTime(23, 59, 59);
+
+        BigDecimal totalTransaksi =
+                activityRepository
+                        .getTotalTransaksi(
+                                start,
+                                end
+                        );
+
+        BigDecimal pajak =
+                totalTransaksi.multiply(
+                        new BigDecimal("0.10")
+                );
+
+        BigDecimal dpp =
+                totalTransaksi.subtract(
+                        pajak
+                );
+
+        return new DashboardMetricResponse(
+                dpp,
+                pajak,
+                totalTransaksi
+        );
+    }
+
+    @GetMapping("/chart")
+    public ChartResponse getChart(
+
+            @RequestParam String startDate,
+
+            @RequestParam String endDate,
+
+            @RequestParam(defaultValue = "harian")
+            String type
+    ) {
+
+        LocalDateTime start =
+                LocalDate.parse(startDate)
+                        .atStartOfDay();
+
+        LocalDateTime end =
+                LocalDate.parse(endDate)
+                        .atTime(23,59,59);
+
+        List<Object[]> results;
+
+        if (type.equalsIgnoreCase("bulanan")) {
+
+            results =
+                    activityRepository
+                            .getMonthlyChart(
+                                    start,
+                                    end
+                            );
+
+        } else {
+
+            results =
+                    activityRepository
+                            .getDailyChart(
+                                    start,
+                                    end
+                            );
+        }
+
+        List<String> categories =
+                new ArrayList<>();
+
+        List<Long> data =
+                new ArrayList<>();
+
+        for (Object[] row : results) {
+
+            categories.add(
+                    row[0].toString()
+            );
+
+            data.add(
+                    ((Number) row[1]).longValue()
+            );
+        }
+
+        return new ChartResponse(
+                categories,
+                data
+        );
+    }
+
+    @GetMapping("/objek-pajak")
+    public Map<String, Object> get(
+            @RequestParam String startDate,
+            @RequestParam String endDate,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return (Map<String, Object>) service.getData(
+                startDate,
+                endDate,
+                page,
+                size
+        );
     }
 }
