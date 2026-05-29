@@ -8,6 +8,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Service
 public class ActivityService {
 
@@ -33,9 +37,9 @@ public class ActivityService {
                 );
 
         JsonNode dataNode =
-                root.get("data");
+                root.path("data");
 
-        if (dataNode == null || !dataNode.isArray()) {
+        if (!dataNode.isArray()) {
 
             System.out.println(
                     "Tidak ada data activity"
@@ -44,10 +48,18 @@ public class ActivityService {
             return;
         }
 
+        // format datetime vendor
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern(
+                        "yyyy-MM-dd HH:mm:ss"
+                );
+
         for (JsonNode item : dataNode) {
 
             String sourceId =
-                    item.path("no_transaksi").asText();
+                    item.path("no_transaksi")
+                            .asText()
+                            .trim();
 
             // skip jika sudah ada
             if (activityRepo.existsBySourceId(sourceId)) {
@@ -70,11 +82,49 @@ public class ActivityService {
             );
 
             activity.setName(
-                    item.path("nmhhb").asText().trim()
+                    item.path("nmhhb")
+                            .asText("")
+                            .trim()
             );
 
+            // =========================
+            // TRANS DATE
+            // =========================
+            String transDateString =
+                    item.path("trans_date")
+                            .asText("")
+                            .trim();
+
+            // simpan raw string
             activity.setActivityDate(
-                    item.path("trans_date").asText()
+                    transDateString
+            );
+
+            // parse ke LocalDateTime
+            if (!transDateString.isEmpty()) {
+
+                LocalDateTime transDate =
+                        LocalDateTime.parse(
+                                transDateString,
+                                formatter
+                        );
+
+                activity.setTransDate(
+                        transDate
+                );
+            }
+
+            // =========================
+            // TOTAL TRANSAKSI
+            // =========================
+            BigDecimal totalTransaksi =
+                    BigDecimal.valueOf(
+                            item.path("sub_total")
+                                    .asLong(0)
+                    );
+
+            activity.setTotalTransaksi(
+                    totalTransaksi
             );
 
             activityRepo.save(activity);
