@@ -1,5 +1,6 @@
 package com.beni.syncapp.controller;
 
+import com.beni.syncapp.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import com.beni.syncapp.entity.Role;
@@ -23,8 +24,34 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping
-    public List<User> getAll() {
-        return userRepository.findAll();
+    public List<UserResponse> getAll() {
+
+        return userRepository.findAll()
+                .stream()
+                .map(user -> {
+
+                    UserResponse response =
+                            new UserResponse();
+
+                    response.setId(
+                            user.getId()
+                    );
+
+                    response.setUsername(
+                            user.getUsername()
+                    );
+
+                    response.setEmail(
+                            user.getEmail()
+                    );
+
+                    response.setRole(
+                            user.getRole()
+                    );
+
+                    return response;
+                })
+                .toList();
     }
 
     @GetMapping("/me")

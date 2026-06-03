@@ -4,15 +4,12 @@ import com.beni.syncapp.dto.*;
 import com.beni.syncapp.repository.ActivityRepository;
 import com.beni.syncapp.service.DashboardService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -189,4 +186,6 @@ public class DashboardController {
                 size
         );
     }
+
+
 }
