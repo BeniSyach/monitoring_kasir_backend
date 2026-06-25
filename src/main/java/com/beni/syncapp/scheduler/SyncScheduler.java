@@ -18,6 +18,21 @@ public class SyncScheduler {
     @Scheduled(cron = "0 0 * * * *")
     public void syncPajak() {
 
-        syncEngine.sync("PAJAK");
+        String[] vendors = {
+                "PAJAK",
+                "PAJAK2"
+        };
+
+        for (String vendor : vendors) {
+
+            try {
+
+                syncEngine.sync(vendor);
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+        }
     }
 }
