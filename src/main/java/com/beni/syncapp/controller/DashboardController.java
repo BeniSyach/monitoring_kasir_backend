@@ -175,9 +175,7 @@ public class DashboardController {
     @GetMapping("/objek-pajak")
     public Map<String, Object> get(
             @RequestParam String startDate,
-            @RequestParam String endDate,
-            @RequestParam int page,
-            @RequestParam int size
+            @RequestParam String endDate
     ) {
         return (Map<String, Object>) service.getData(
                 startDate,
