@@ -21,9 +21,7 @@ public class DashboardService {
 
     public Object getData(
             String startDate,
-            String endDate,
-            int page,
-            int size
+            String endDate
     ) {
 
         LocalDateTime start = LocalDate.parse(startDate).atStartOfDay();
@@ -31,13 +29,7 @@ public class DashboardService {
 
         List<Object[]> raw = repo.findDashboard(start, end);
 
-        int startIdx = page * size;
-        int endIdx = Math.min(startIdx + size, raw.size());
-
-        List<Object[]> pageData =
-                raw.subList(startIdx, endIdx);
-
-        List<ObjekPajakDTO> result = pageData.stream()
+        List<ObjekPajakDTO> result = raw.stream()
                 .map(row -> new ObjekPajakDTO(
                         "NPWPD-" + row[0],
                         (String) row[1],
@@ -51,9 +43,7 @@ public class DashboardService {
                 .toList();
 
         return java.util.Map.of(
-                "data", result,
-                "totalItems", raw.size(),
-                "totalPages", (int) Math.ceil((double) raw.size() / size)
+                "data", result
         );
     }
 }

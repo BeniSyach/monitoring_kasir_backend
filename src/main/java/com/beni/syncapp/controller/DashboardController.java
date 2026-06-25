@@ -181,9 +181,7 @@ public class DashboardController {
     ) {
         return (Map<String, Object>) service.getData(
                 startDate,
-                endDate,
-                page,
-                size
+                endDate
         );
     }
 
